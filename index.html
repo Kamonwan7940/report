@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ตารางข้อมูลการปฏิบัติงานนักศึกษาฝึกงาน คลังศาลายา</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<style>
+    body {
+        font-family: 'Kanit', sans-serif;
+        background: #f0f7ff;
+        padding: 30px;
+        margin: 0;
+    }
+
+    header {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding-bottom: 20px;
+        border-bottom: 3px solid #0d47a1;
+        margin-bottom: 25px;
+    }
+
+    header img {
+        height: 70px;
+    }
+
+    header h1 {
+        font-size: 26px;
+        font-weight: 600;
+        color: #0d47a1;
+        margin: 0;
+    }
+
+    .table-box {
+        background: white;
+        padding: 20px;
+        border-radius: 16px;
+        box-shadow: 0 4px 14px rgba(0,0,0,0.10);
+        overflow-x: auto;
+        border-left: 6px solid #1b5e20;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 15px;
+    }
+
+    thead {
+        background: #0d47a1;
+        color: white;
+    }
+
+    th, td {
+        padding: 12px 16px;
+        border-bottom: 1px solid #e0e0e0;
+    }
+
+    tr:hover {
+        background: #e8f5e9;
+    }
+
+    .approved {
+        color: #1b5e20;
+        font-weight: 600;
+    }
+    .rejected {
+        color: #c62828;
+        font-weight: 600;
+    }
+</style>
+</head>
+
+<body>
+
+<header>
+    <img src="logo.png" alt="Sangchai Logo">
+    <h1>ตารางข้อมูลการปฏิบัติงานนักศึกษาฝึกงาน คลังศาลายา</h1>
+</header>
+
+<div class="table-box" id="output">
+    กำลังโหลดข้อมูล...
+</div>
+
+<script>
+const API_URL =
+"https://script.googleusercontent.com/macros/echo?user_content_key=AehSKLhDFphILQSCoBSdLsjBkDxSRfXxJkScYQKQDWXFfA8jwN2Td8zLPl5GdhTUCCtu0vv1_v5tRi7n8OaTRtdGifVRO4Z-WIyjb2iH5Ir2Hn47xeiAmRUO-jcjGwCQF1dvNFxGJNAwtBsQ7P5cCANb0FdC-6mhcoyjETaBuSrOcG9R9Eq2aznH8WvuCxDS5rTfNClifFq-WSUtkmgmVz3hGwKUuuXxfDcK_0nciygbWZ8XGscYaIjAgXRLbKCu1nhiSCS9RoXYZ1LeTDMSr9NgXcyJXdWYSw&lib=MgiHbhQIl1HumOIvthVApZL5xIefGKf83";
+
+function formatDate(dateStr) {
+    if (!dateStr) return "";
+    let d = new Date(dateStr);
+    if (d.toString() === "Invalid Date") return dateStr;
+    return d.toLocaleString("th-TH", { dateStyle: "medium", timeStyle: "short" });
+}
+
+function loadData() {
+    fetch(API_URL)
+        .then(res => res.json())
+        .then(data => {
+            let html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ประทับเวลา</th>
+                            <th>แผนก</th>
+                            <th>ชื่อ-สกุล</th>
+                            <th>วันที่ปฏิบัติงาน</th>
+                            <th>รายละเอียดงาน</th>
+                            <th>อุปสรรค</th>
+                            <th>วิธีแก้</th>
+                            <th>ข้อเสนอแนะ</th>
+                            <th>ไฟล์</th>
+                            <th>สถานะ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            data.forEach(row => {
+                html += `
+                    <tr>
+                        <td>${formatDate(row.timestamp)}</td>
+                        <td>${row.department || ""}</td>
+                        <td>${row.fullname || ""}</td>
+                        <td>${formatDate(row.workDate)}</td>
+                        <td>${row.details || ""}</td>
+                        <td>${row.obstacle || ""}</td>
+                        <td>${row.solve || ""}</td>
+                        <td>${row.suggestion || ""}</td>
+                        <td><a href="${row.fileUrl}" target="_blank">เปิดไฟล์</a></td>
+                        <td class="${row.approval === 'อนุมัติแล้ว' ? 'approved' : 'rejected'}">
+                            ${row.approval || ""}
+                        </td>
+                    </tr>
+                `;
+            });
+
+            html += "</tbody></table>";
+            document.getElementById("output").innerHTML = html;
+        })
+        .catch(err => {
+            document.getElementById("output").innerHTML = "❌ ไม่สามารถโหลดข้อมูลได้";
+        });
+}
+
+loadData();
+setInterval(loadData, 10000);
+</script>
+
+</body>
+</html>
